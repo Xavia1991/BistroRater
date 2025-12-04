@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
   <Project Path="BistroRater/BistroRater.csproj" />
   <Project Path="Contracts/Contract.csproj" />
   <Project Path="Database/Database.csproj" />
