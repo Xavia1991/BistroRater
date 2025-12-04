@@ -1,3 +1,5 @@
 <Solution>
-  <Project Path="BistroRater.csproj" />
+  <Project Path="BistroRater/BistroRater.csproj" />
+  <Project Path="Contracts/Contract.csproj" />
+  <Project Path="Database/Database.csproj" />
 </Solution>

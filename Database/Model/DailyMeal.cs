@@ -1,0 +1,22 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Database.Model;
+
+public class DailyMeal
+{
+    [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+    public DateOnly Date { get; set; }
+    [Required, MaxLength(200), MinLength(2)]
+    public string Description { get; set; } = string.Empty;
+    public ICollection<MealRating> Ratings { get; set; } = new List<MealRating>();
+    public MealOption Option { get; set; }
+
+    public enum MealOption
+    {
+        Grill_Sandwiches,
+        Smuts_Leibspeise,
+        Just_Good_Food
+    }
+}
