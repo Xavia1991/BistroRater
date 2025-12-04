@@ -1,9 +1,9 @@
 ﻿using Database;
 using Database.Model;
-using Library.Model.Requests;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Contract;
+using Contract.Model.Requests;
 
 namespace BistroRater.Controllers;
 

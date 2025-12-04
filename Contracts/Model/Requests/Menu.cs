@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Library.Model.Requests
+namespace Contract.Model.Requests
 {
     public record RenameMenuRequest(int DailyMealId, string NewDescription);
 

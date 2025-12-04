@@ -1,11 +1,11 @@
 ﻿using Database;
 using Database.Model;
-using Library.Model.DTO;
-using Library.Model.Requests;
+using Contract.Model.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static Database.Model.DailyMeal;
 using Contract;
+using Contract.Model.Requests;
 
 [ApiController]
 [Route("api/menu")]

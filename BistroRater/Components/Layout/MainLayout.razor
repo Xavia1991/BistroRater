@@ -1,9 +1,60 @@
 ﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager Nav
 
-@Body
+<CascadingAuthenticationState>
+    @if (!_checkedAuth)
+    {
+        <p>@authStage</p>
+    }
+    else if (_isAuthenticated)
+    {
+        @Body
+    }
+    else
+    {
+        <p>Umleitung zur Anmeldung...</p>
+    }
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
+    <div id="blazor-error-ui" data-nosnippet>
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+</CascadingAuthenticationState>
+
+@code {
+    private bool _checkedAuth = false;
+    private bool _isAuthenticated = false;
+    private string authStage = "Lade...";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        _isAuthenticated = state.User?.Identity?.IsAuthenticated ?? false;
+
+        _checkedAuth = true;
+
+
+        if (!_isAuthenticated)
+        {
+            await ForceNavigationToLogin();
+        }
+    }
+
+    private async Task ForceNavigationToLogin()
+    {
+        string defaultStage = authStage;
+        var uri = Nav.Uri.ToLower();
+        authStage =
+            uri.Contains("/signin-oidc") ? "Verarbeite Anmeldung…" :
+            uri.Contains("/signout-callback-oidc") ? "Abmeldung wird verarbeitet…" :
+            uri.Contains("/signin") ? "Weiterleitung zur Anmeldung…" :
+            uri.Contains("/auth/login") ? "Anmelde-Seite wird geladen…" :
+            uri.Contains("/auth/logout") ? "Du wirst abgemeldet…" :
+            defaultStage;
+        // Let OIDC callback endpoint THROUGH without redirect
+        if (authStage == defaultStage)
+            Nav.NavigateTo("/signin", forceLoad: true);
+    }
+}
