@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /BistroRater/bistro.db
 /BistroRater/bistro.db-shm
 /BistroRater/bistro.db-wal
+/.env
