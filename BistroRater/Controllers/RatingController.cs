@@ -64,7 +64,7 @@ public class RatingsController : ControllerBase
                 DayNumber = DateOnly.FromDateTime(DateTime.Now.Date).DayNumber
             };
             _db.MealRatings.Add(rating);
-         
+
         }
         else if (rating.DailyMealId != request.DailyMealId)
         {
@@ -98,14 +98,14 @@ public class RatingsController : ControllerBase
         var result = await _db.MealRatings
             .Where(r => r.DailyMeal.Description != null)
             .GroupBy(r => r.DailyMeal.Description!)
+            .Where(x => x.Count() >= minRatings)
+            .OrderByDescending(x => x.Average(x => x.Stars))
+            .ThenByDescending(x => x.Count())
             .Select(g => new TopMenuDto(
                 Description: g.Key,
                 AvgStars: g.Average(x => x.Stars),
                 Count: g.Count()
             ))
-            .Where(x => x.Count >= minRatings)
-            .OrderByDescending(x => x.AvgStars)
-            .ThenByDescending(x => x.Count)
             .ToListAsync();
 
         return Ok(result);
