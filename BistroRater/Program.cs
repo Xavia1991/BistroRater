@@ -1,3 +1,4 @@
+using BistroRater;
 using BistroRater.Components;
 using Database;
 using Microsoft.AspNetCore.Authentication;
