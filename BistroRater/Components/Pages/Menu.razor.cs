@@ -150,4 +150,31 @@ public partial class Menu
             mealMessages[meal.Id] = $"Fehler: {ex.Message}";
         }
     }
+
+    Dictionary<int, List<string>> ActiveSuggestions = new();
+
+    async Task OnRenameInput(int mealId, string value)
+    {
+        renameDraft[mealId] = value;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ActiveSuggestions[mealId] = new();
+            return;
+        }
+
+        var client = HttpClientFactory.CreateClient("ApiClient");
+
+        var suggestions = await client.GetFromJsonAsync<List<string>>(
+            $"api/menu/autocomplete?query={Uri.EscapeDataString(value)}");
+
+        ActiveSuggestions[mealId] = suggestions ?? new();
+    }
+
+    void SelectSuggestion(int mealId, string suggestion)
+    {
+        renameDraft[mealId] = suggestion;
+        ActiveSuggestions[mealId] = new();
+    }
+
 }

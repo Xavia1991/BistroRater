@@ -67,7 +67,20 @@
                                     @if (IsEditing(meal.Id))
                                     {
                                         <div class="rename-row">
-                                            <input class="rename-input" @bind="renameDraft[meal.Id]" placeholder="Neuer Name" />
+                                            <input class="rename-input"
+                                                   value="@renameDraft[meal.Id]"
+                                                   @oninput="(e => OnRenameInput(meal.Id, e.Value?.ToString() ?? string.Empty))"
+                                                   placeholder="Neuer Name" />
+
+                                            @if (ActiveSuggestions.TryGetValue(meal.Id, out var list) && list.Any())
+                                            {
+                                                <ul class="autocomplete-list">
+                                                    @foreach (var s in list)
+                                                    {
+                                                        <li @onclick="() => SelectSuggestion(meal.Id, s)">@s</li>
+                                                    }
+                                                </ul>
+                                            }
                                             <button class="action-button" @onclick="() => SaveRenameAsync(meal)">Speichern</button>
                                             <button class="link-button" @onclick="() => CancelEdit(meal.Id)">Abbrechen</button>
                                         </div>
