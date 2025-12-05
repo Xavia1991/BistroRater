@@ -11,5 +11,6 @@ public class MealRating
     public string UserId { get; set; } = null!;
 
     public int Stars { get; set; } // 1–5
-    public DateTime CreatedAtUtc { get; set; }
+    // Numeric identifier for the specific day (number of days since year 1, day 1 in gregorian calendar.
+    public int DayNumber { get; set; }
 }

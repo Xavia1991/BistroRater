@@ -20,16 +20,13 @@ public class BistroContext : DbContext
     {
         modelBuilder.Entity<DailyMeal>(entity =>
         {
-            entity.Property(x => x.Date)
-                  .HasConversion<DateOnlyConverter>();
             entity.HasIndex(x => x.Description);
         });
 
         modelBuilder.Entity<MealRating>(entity =>
         {
-            entity.HasIndex(x => new { x.DailyMealId, x.UserId }).IsUnique();
-            entity.Property(x => x.Stars)
-                  .IsRequired();
+            entity.HasIndex(x => new { x.DayNumber, x.UserId })
+            .IsUnique();
         });
 
     }
