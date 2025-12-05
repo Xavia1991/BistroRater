@@ -5,7 +5,7 @@
 <CascadingAuthenticationState>
     @if (!_checkedAuth)
     {
-        <p>@authStage</p>
+        <p>Lade...</p>
     }
     else if (_isAuthenticated)
     {
@@ -13,7 +13,7 @@
     }
     else
     {
-        <p>Umleitung zur Anmeldung...</p>
+        <BistroRater.Components.Pages.LoginScreen/>
     }
 
     <div id="blazor-error-ui" data-nosnippet>
@@ -34,27 +34,6 @@
         _isAuthenticated = state.User?.Identity?.IsAuthenticated ?? false;
 
         _checkedAuth = true;
-
-
-        if (!_isAuthenticated)
-        {
-            await ForceNavigationToLogin();
-        }
     }
 
-    private async Task ForceNavigationToLogin()
-    {
-        string defaultStage = authStage;
-        var uri = Nav.Uri.ToLower();
-        authStage =
-            uri.Contains("/signin-oidc") ? "Verarbeite Anmeldung…" :
-            uri.Contains("/signout-callback-oidc") ? "Abmeldung wird verarbeitet…" :
-            uri.Contains("/signin") ? "Weiterleitung zur Anmeldung…" :
-            uri.Contains("/auth/login") ? "Anmelde-Seite wird geladen…" :
-            uri.Contains("/auth/logout") ? "Du wirst abgemeldet…" :
-            defaultStage;
-        // Let OIDC callback endpoint THROUGH without redirect
-        if (authStage == defaultStage)
-            Nav.NavigateTo("/signin", forceLoad: true);
-    }
 }

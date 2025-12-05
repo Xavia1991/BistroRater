@@ -49,10 +49,17 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseHttpsRedirection();
 
 app.UseRouting();
-app.MapGet("/signin", async context => {
+app.MapGet("/signin", async context =>
+{
     await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" });
 });
-
+app.MapGet("/logout", async context =>
+{
+    // Löscht das lokale Cookie
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    context.Response.Redirect("/");
+}
+});
 AddDevEnvironmentUser(app);
 app.UseAuthentication();
 app.UseAuthorization();
@@ -119,23 +126,23 @@ void AddDevEnvironmentUser(WebApplication app)
     var requireAuth = builder.Configuration.GetValue<bool>("Auth:RequireAuth");
 
     // --- DEV MODE: fake user ---
-    if (!requireAuth)
+    if (!requireAuth && app.Environment.IsDevelopment())
     {
-        app.Use(async (context, next) =>
+        app.MapGet("/dev-login", async context =>
         {
-            // Only generate fake identity if system has no authenticated user
-            if (context.User?.Identity?.IsAuthenticated != true)
-            {
-                var identity = new ClaimsIdentity("DevAuth");
-                identity.AddClaim(new Claim("sub", "dev-user"));
-                identity.AddClaim(new Claim(ClaimTypes.Name, "Developer"));
-                identity.AddClaim(new Claim(ClaimTypes.Email, "dev@example.com"));
-                identity.AddClaim(new Claim(ClaimTypes.Role, "Developer"));
+            var identity = new ClaimsIdentity("DevAuth");
+            identity.AddClaim(new Claim("sub", "dev-user"));
+            identity.AddClaim(new Claim(ClaimTypes.Name, "Developer"));
+            identity.AddClaim(new Claim(ClaimTypes.Email, "dev@example.com"));
+            identity.AddClaim(new Claim(ClaimTypes.Role, "Developer"));
 
-                context.User = new ClaimsPrincipal(identity);
-            }
+            var principal = new ClaimsPrincipal(identity);
 
-            await next();
+            await context.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal);
+
+            context.Response.Redirect("/", true);
         });
     }
 }

@@ -1,0 +1,45 @@
+﻿@inject NavigationManager Nav
+@inject IHostEnvironment Env
+@rendermode RenderMode.InteractiveServer
+
+<div class="login-container">
+    <div class="login-box">
+        <h2>Anmeldung</h2>
+
+        <button class="login-btn" @onclick="LoginWithOAuth">
+            Login mit Auth0
+        </button>
+
+        @if (Env.IsDevelopment())
+        {
+            <div class="dev-section">
+                <span class="dev-label">Entwicklerzugang:</span>
+                <button class="dev-btn" @onclick="DevLogin">
+                    Dev-Login (Fake User)
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Env.IsDevelopment())
+{
+    <hr />
+    <button class="dev-login" @onclick="DevLogin">
+        Dev-Login (Fake User)
+    </button>
+}
+
+
+@code {
+    private void LoginWithOAuth()
+    {
+        Nav.NavigateTo("/signin", forceLoad: true);
+    }
+
+    private void DevLogin()
+    {
+        Nav.NavigateTo("/dev-login", forceLoad: true);
+    }
+}
+
