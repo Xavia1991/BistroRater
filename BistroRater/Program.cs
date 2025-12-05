@@ -32,7 +32,7 @@ builder.Services.AddHttpClient("ApiClient", (sp, client) =>
 
 builder.Services.AddDbContext<BistroContext>(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("Default"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default"));
 });
 
 var app = builder.Build();
