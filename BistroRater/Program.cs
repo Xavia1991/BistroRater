@@ -55,6 +55,7 @@ app.MapGet("/signin", async context => {
 
 AddDevEnvironmentUser(app);
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
@@ -67,6 +68,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<BistroContext>();
     db.Database.Migrate();
 }
+app.MapControllers();
 
 app.Run();
 

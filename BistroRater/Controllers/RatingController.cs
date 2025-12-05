@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BistroRater.Controllers;
 
 // Controller for creating and updating meal ratings.
-[ApiController, Route("api/ratings"), Authorize]
+[ApiController, Route("api/ratings")]
 public class RatingsController : ControllerBase
 {
     private readonly BistroContext _db;
@@ -45,7 +45,7 @@ public class RatingsController : ControllerBase
         if (request.Stars < 1 || request.Stars > 5)
             return BadRequest("Stars must be between 1 and 5.");
 
-        var userId = User.Identity?.Name;
+        var userId = User.Identity?.Name ?? request.userID;
         if (string.IsNullOrEmpty(userId))
             return Unauthorized("No UserID found");
 

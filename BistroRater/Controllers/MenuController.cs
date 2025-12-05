@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 /// Provides API endpoints for managing and retrieving daily meal menus, including weekly menu listings, menu renaming,
 /// and autocomplete suggestions for menu descriptions.
 /// </summary>
-[ApiController, Route("api/menu"), Authorize]
+[ApiController, Route("api/menu")]
 public class MenuController : ControllerBase
 {
     private readonly BistroContext _db;
@@ -40,7 +40,7 @@ public class MenuController : ControllerBase
 
         // 1) Load existing meals for the week
         var meals = await _db.DailyMeals
-            .Where(m => m.DayNumber >= monday && m.DayNumber < friday)
+            .Where(m => m.DayNumber >= monday && m.DayNumber <= friday)
             .OrderBy(m => m.DayNumber)
             .ThenBy(m => m.Option)
             .ToListAsync();
