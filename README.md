@@ -85,6 +85,7 @@ services:
       Auth__Authority: "${AUTH_AUTHORITY}"
       Auth__ClientId: "${AUTH_CLIENTID}"
       Auth__ClientSecret: "${AUTH_CLIENTSECRET}"
+      Auth__Audience: "${AUTH_AUDIENCE}"
     ports:
       - "7015:8080"
 
@@ -110,6 +111,7 @@ volumes:
 AUTH_AUTHORITY=https://YOUR_DOMAIN.eu.auth0.com/
 AUTH_CLIENTID=YOUR_CLIENT_ID
 AUTH_CLIENTSECRET=YOUR_CLIENT_SECRET
+AUTH_AUDIENCE=api://bistrorater
 
 # ==== PostgreSQL Configuration ====
 POSTGRES_USER=postgres

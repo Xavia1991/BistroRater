@@ -1,4 +1,4 @@
-﻿using Database;
+using Database;
 using Database.Model;
 using Contract.Model.DTO;
 using Microsoft.AspNetCore.Mvc;
@@ -7,12 +7,14 @@ using static Database.Model.DailyMeal;
 using Contract;
 using Contract.Model.Requests;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 /// <summary>
 /// Provides API endpoints for managing and retrieving daily meal menus, including weekly menu listings, menu renaming,
 /// and autocomplete suggestions for menu descriptions.
 /// </summary>
 [ApiController, Route("api/menu")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class MenuController : ControllerBase
 {
     private readonly BistroContext _db;

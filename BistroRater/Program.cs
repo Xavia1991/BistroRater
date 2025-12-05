@@ -2,6 +2,7 @@ using BistroRater.Components;
 using Database;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -28,7 +29,8 @@ builder.Services.AddHttpClient("ApiClient", (sp, client) =>
 
     client.BaseAddress = new Uri(baseUrl);
 
-});
+}).AddHttpMessageHandler<ApiAuthorizationMessageHandler>();
+builder.Services.AddTransient<ApiAuthorizationMessageHandler>();
 
 builder.Services.AddDbContext<BistroContext>(options =>
 {
@@ -55,7 +57,7 @@ app.MapGet("/signin", async context =>
 });
 app.MapGet("/logout", async context =>
 {
-    // Löscht das lokale Cookie
+    // LÃ¶scht das lokale Cookie
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     context.Response.Redirect("/");
 }
@@ -98,13 +100,19 @@ void AddAuthentication(WebApplicationBuilder builder)
      })
      .AddOpenIdConnect(options =>
      {
-         options.Authority = builder.Configuration["Auth:Authority"];
-         options.ClientId = builder.Configuration["Auth:ClientId"];
-         options.ClientSecret = builder.Configuration["Auth:ClientSecret"];
-         if (options.Authority == null || options.ClientId == null || options.ClientSecret == null)
+         var authority = builder.Configuration["Auth:Authority"];
+         var clientId = builder.Configuration["Auth:ClientId"];
+         var clientSecret = builder.Configuration["Auth:ClientSecret"];
+         var audience = builder.Configuration["Auth:Audience"];
+
+         if (authority == null || clientId == null || clientSecret == null)
          {
              throw new MissingFieldException("Authentication: OAuth is not configured.");
          }
+
+         options.Authority = authority;
+         options.ClientId = clientId;
+         options.ClientSecret = clientSecret;
 
          options.ResponseType = "code";
          options.SaveTokens = true;
@@ -112,6 +120,29 @@ void AddAuthentication(WebApplicationBuilder builder)
          options.Scope.Add("openid");
          options.Scope.Add("profile");
          options.Scope.Add("email");
+
+         if (!string.IsNullOrWhiteSpace(audience))
+         {
+             options.Events = new OpenIdConnectEvents
+             {
+                 OnRedirectToIdentityProvider = context =>
+                 {
+                     context.ProtocolMessage.SetParameter("audience", audience);
+                     return Task.CompletedTask;
+                 }
+             };
+         }
+
+         options.TokenValidationParameters = new TokenValidationParameters
+         {
+             NameClaimType = "name",
+             RoleClaimType = "roles"
+         };
+     })
+     .AddJwtBearer(options =>
+     {
+         options.Authority = builder.Configuration["Auth:Authority"];
+         options.Audience = builder.Configuration["Auth:Audience"];
 
          options.TokenValidationParameters = new TokenValidationParameters
          {

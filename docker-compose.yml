@@ -25,6 +25,7 @@ services:
       Auth__Authority: "${AUTH_AUTHORITY}"
       Auth__ClientId: "${AUTH_CLIENTID}"
       Auth__ClientSecret: "${AUTH_CLIENTSECRET}"
+      Auth__Audience: "${AUTH_AUDIENCE}"
     ports:
       - "7015:8080"  # 7015 lokal -> 8080 im Container (siehe Dockerfile ENV)
 
