@@ -31,7 +31,7 @@ public class MenuController : ControllerBase
     /// used.</param>
     /// <returns>An <see cref="IActionResult"/> containing a collection of daily meal menus for the requested week. The result is
     /// an HTTP 200 response with the list of menus.</returns>
-    [HttpGet("week", Name = Routing.Menu.Weekly)]
+    [HttpGet("week")]
     public async Task<IActionResult> GetWeeklyMenus([FromQuery] DateTime? date)
     {
         int monday = GetLastMondayDayNumber(date);
@@ -62,7 +62,7 @@ public class MenuController : ControllerBase
     /// <returns>An <see cref="IActionResult"/> indicating the result of the operation. Returns <see cref="OkResult"/> if the
     /// menu was successfully renamed; <see cref="NotFoundResult"/> if the specified daily meal does not exist; or <see
     /// cref="BadRequestResult"/> if the new description is invalid.</returns>
-    [HttpPost("rename", Name = Routing.Menu.Rename)]
+    [HttpPost("rename")]
     public async Task<IActionResult> RenameMenu([FromBody] RenameMenuRequest request)
     {
         var meal = await _db.DailyMeals.FindAsync(request.DailyMealId);
@@ -90,7 +90,7 @@ public class MenuController : ControllerBase
     /// list is returned.</param>
     /// <returns>An <see cref="IActionResult"/> containing a list of up to ten distinct menu descriptions that include the search
     /// query. Returns an empty list if the query is null, whitespace, or shorter than two characters.</returns>
-    [HttpGet("autocomplete", Name = Routing.Menu.Autocomplete)]
+    [HttpGet("autocomplete")]
     public async Task<IActionResult> AutocompleteMenuDescriptions([FromQuery] string query)
     {
         if (string.IsNullOrWhiteSpace(query) || query.Length < 2)

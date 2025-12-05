@@ -31,7 +31,7 @@ public class RatingsController : ControllerBase
     /// rating is successfully created or updated; <see cref="NotFoundResult"/> if the specified meal does not exist;
     /// <see cref="BadRequestObjectResult"/> if the meal is not for today, the stars are out of range, or the user has
     /// already rated a different meal today; or <see cref="UnauthorizedResult"/> if the user is not authenticated.</returns>
-    [HttpPost("rate", Name = Routing.Ratings.Rate)]
+    [HttpPost("rate")]
     public async Task<IActionResult> RateMeal([FromBody] RateMealRequest request)
     {
         var meal = await _db.DailyMeals.FindAsync(request.DailyMealId);
@@ -91,7 +91,7 @@ public class RatingsController : ControllerBase
     /// to 1.</param>
     /// <returns>An <see cref="IActionResult"/> containing a collection of top menu items with their descriptions, average star
     /// ratings, and rating counts. The collection is empty if no menus meet the criteria.</returns>
-    [HttpGet("top", Name = Routing.Ratings.Top)]
+    [HttpGet("top")]
     public async Task<IActionResult> GetTopMenus([FromQuery] int minRatings = 1)
     {
         // Load ratings and group by meal description
