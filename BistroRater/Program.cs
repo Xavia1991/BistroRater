@@ -58,7 +58,6 @@ app.MapGet("/logout", async context =>
     // Löscht das lokale Cookie
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     context.Response.Redirect("/");
-}
 });
 AddDevEnvironmentUser(app);
 app.UseAuthentication();

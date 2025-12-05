@@ -1,0 +1,13 @@
+﻿@inject NavigationManager Nav
+@rendermode RenderMode.InteractiveServer
+
+<button class="floating-logout-btn" @onclick="Logout">
+    Logout
+</button>
+
+@code {
+    private void Logout()
+    {
+        Nav.NavigateTo("/logout", forceLoad: true);
+    }
+}
