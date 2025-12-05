@@ -1,8 +1,14 @@
 <Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
   <Folder Name="/Solution Items/">
     <File Path="README.md" />
   </Folder>
   <Project Path="BistroRater/BistroRater.csproj" />
   <Project Path="Contracts/Contract.csproj" />
-  <Project Path="Database/Database.csproj" />
+  <Project Path="Database/Database.csproj">
+    <Platform Solution="Release|x64" Project="x64" />
+  </Project>
 </Solution>

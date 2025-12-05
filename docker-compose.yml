@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: bistro-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bistrodb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  webapp:
+    build: .
+    container_name: bistro-webapp
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      # Wichtig: der Host ist NICHT localhost, sondern der SERVICE-NAME "postgres"
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=bistrodb;Username=postgres;Password=postgres"
+      Auth__Authority: "${AUTH_AUTHORITY}"
+      Auth__ClientId: "${AUTH_CLIENTID}"
+      Auth__ClientSecret: "${AUTH_CLIENTSECRET}"
+    ports:
+      - "7015:8080"  # 7015 lokal -> 8080 im Container (siehe Dockerfile ENV)
+
+volumes:
+  postgres-data:
