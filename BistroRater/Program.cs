@@ -1,7 +1,9 @@
 using BistroRater.Components;
+using Database;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
@@ -26,6 +28,11 @@ builder.Services.AddHttpClient("ApiClient", (sp, client) =>
 
     client.BaseAddress = new Uri(baseUrl);
 
+});
+
+builder.Services.AddDbContext<BistroContext>(options =>
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("Default"));
 });
 
 var app = builder.Build();
@@ -55,8 +62,17 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 app.MapRazorPages();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<BistroContext>();
+    db.Database.Migrate();
+}
+
 app.Run();
 
+
+
+#region helpers
 void AddAuthentication(WebApplicationBuilder builder)
 {
     builder.Services
@@ -121,3 +137,5 @@ void AddDevEnvironmentUser(WebApplication app)
         });
     }
 }
+
+#endregion
