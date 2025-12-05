@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/BistroRater/bistro.db
+/BistroRater/bistro.db-shm
+/BistroRater/bistro.db-wal
