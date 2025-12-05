@@ -1,8 +1,10 @@
-﻿using Contract;
+using Contract;
+using Contract.Model.DTO;
 using Contract.Model.Requests;
 using Database.Model;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Globalization;
+using System.Net.Http.Json;
 using static Database.Model.DailyMeal;
 
 namespace BistroRater.Components.Pages;
@@ -14,10 +16,14 @@ public partial class Menu
     private readonly Dictionary<int, string> renameDraft = new();
     private readonly HashSet<int> editingMeals = new();
     private readonly Dictionary<int, string> mealMessages = new();
+    private readonly List<TopMenuDto> topMenus = new();
     private AuthenticationState? authenthication;
 
     private bool isLoading = true;
     private string? errorMessage;
+    private bool isTopModalOpen;
+    private bool isTopLoading;
+    private string? topErrorMessage;
     private DateOnly weekStart = GetCurrentWeekStart();
     private DateOnly weekEnd => weekStart.AddDays(4);
 
@@ -37,7 +43,7 @@ public partial class Menu
         try
         {
             var client = HttpClientFactory.CreateClient("ApiClient");
-            var result = await client.GetStringAsync("api/menu/week");
+            _ = await client.GetStringAsync("api/menu/week");
             var menus = await client.GetFromJsonAsync<List<DailyMeal>>(Routing.Menu.Weekly);
             weeklyMeals = menus ?? new List<DailyMeal>();
         }
@@ -177,4 +183,34 @@ public partial class Menu
         ActiveSuggestions[mealId] = new();
     }
 
+    private async Task OpenTopModalAsync()
+    {
+        isTopModalOpen = true;
+        isTopLoading = true;
+        topErrorMessage = null;
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("ApiClient");
+            var response = await client.GetFromJsonAsync<List<TopMenuDto>>("api/ratings/top?minRatings=1");
+            var sortedMenus = response?
+                .OrderByDescending(m => m.AvgStars)
+                .ThenByDescending(m => m.Count)
+                .Take(10)
+                .ToList() ?? new List<TopMenuDto>();
+
+            topMenus.Clear();
+            topMenus.AddRange(sortedMenus);
+        }
+        catch (Exception ex)
+        {
+            topErrorMessage = $"Top-Menüs konnten nicht geladen werden: {ex.Message}";
+        }
+        finally
+        {
+            isTopLoading = false;
+        }
+    }
+
+    private void CloseTopModal() => isTopModalOpen = false;
 }

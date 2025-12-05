@@ -23,6 +23,7 @@
             <div class="week-label">Woche</div>
             <div class="week-range">@weekStart.ToString("dd.MM.yyyy") - @weekEnd.ToString("dd.MM.yyyy")</div>
         </div>
+        <button class="top-button" @onclick="OpenTopModalAsync">Top 10 Gerichte</button>
     </div>
 
     <div class="menu-card">
@@ -115,3 +116,46 @@
         }
     </div>
 </div>
+
+@if (isTopModalOpen)
+{
+    <div class="modal-backdrop" @onclick="CloseTopModal">
+        <div class="modal" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>Top 10 Daily Menüs</h3>
+                <button class="close-button" @onclick="CloseTopModal" aria-label="Schließen">×</button>
+            </div>
+            <div class="modal-body">
+                @if (isTopLoading)
+                {
+                    <div class="loading">Top-Liste wird geladen...</div>
+                }
+                else if (!string.IsNullOrWhiteSpace(topErrorMessage))
+                {
+                    <div class="error">@topErrorMessage</div>
+                }
+                else if (!topMenus.Any())
+                {
+                    <div class="empty">Noch keine Bewertungen vorhanden.</div>
+                }
+                else
+                {
+                    <ol class="top-list">
+                        @foreach (var menu in topMenus)
+                        {
+                            <li>
+                                <div class="top-item">
+                                    <div class="top-title">@menu.Description</div>
+                                    <div class="top-meta">
+                                        <span class="top-stars">⭐ @menu.AvgStars.ToString("0.0")</span>
+                                        <span class="top-count">@menu.Count Bewertungen</span>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ol>
+                }
+            </div>
+        </div>
+    </div>
+}
