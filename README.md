@@ -11,6 +11,19 @@ The application is fully containerized using **Docker Compose** and runs with:
 
 ---
 
+## ✨ Features
+
+- **Daily Menu Management**: Up to 3 meal options per day (Grill Sandwiches, Smuts Leibspeise, Just Good Food)
+- **Rating System**: Users can rate today's meals with 1-5 stars
+- **Meal Naming**: All users can edit/update meal descriptions
+- **Autocomplete**: Smart suggestions from previously entered meal names
+- **Top Meals View**: See the best-rated meals based on average ratings
+- **OIDC Authentication**: Secure login via Auth0 (optional)
+- **Development Mode**: Run without authentication for testing
+- **Automatic Migrations**: Database schema updates on startup
+
+---
+
 ## ⚙️ Technology Stack
 
 - **.NET 10 / ASP.NET Core**
@@ -19,11 +32,15 @@ The application is fully containerized using **Docker Compose** and runs with:
 - **PostgreSQL 16**
 - **Docker / Docker Compose**
 - **Auth0 (OpenID Connect Login)**
+- **Serilog** for structured logging
+- **xUnit** for unit testing
 - **Adminer** for database inspection
 
 ---
 
 ## 🚀 Quick Start
+
+### Running with Docker (Recommended)
 
 1. Copy the example environment file:
 
@@ -49,6 +66,38 @@ http://localhost:7015
 
 ```
 http://localhost:8080
+```
+
+### Running Locally (Development)
+
+1. Ensure PostgreSQL is running locally or update connection string in `appsettings.Development.json`
+
+2. Run the application:
+
+```bash
+cd BistroRater
+dotnet run
+```
+
+3. Navigate to dev-login to access without authentication:
+
+```
+https://localhost:7015/dev-login
+```
+
+### Running Tests
+
+Run all unit tests:
+
+```bash
+cd BistroRater.Tests
+dotnet test
+```
+
+Or run tests for the entire solution:
+
+```bash
+dotnet test BistroRater.slnx
 ```
 
 ---
@@ -164,6 +213,69 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 ```
+
+---
+
+## 📝 Logging
+
+The application uses **Serilog** for structured logging. Logs are written to:
+
+- **Console** (stdout) - for Docker/containerized environments
+- **File** - `logs/bistrorater-{Date}.log` with daily rolling
+
+Configure log levels in `appsettings.json`:
+
+```json
+{
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft.AspNetCore": "Warning",
+        "Microsoft.EntityFrameworkCore": "Warning"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🧪 Testing
+
+The project includes comprehensive unit tests covering:
+
+- Menu management endpoints
+- Rating functionality  
+- Autocomplete features
+- Top meals retrieval
+
+Run tests with:
+
+```bash
+dotnet test
+```
+
+Test coverage includes:
+- **MenuController**: Weekly menu creation, renaming, autocomplete
+- **RatingsController**: Rating creation/updates, top meals calculation
+
+---
+
+## 🔌 REST API Endpoints
+
+### Menu Management
+
+- `GET /api/menu/week?date={date}` - Get weekly menu (Monday-Friday)
+- `POST /api/menu/rename` - Update meal description
+- `GET /api/menu/autocomplete?query={query}` - Get meal name suggestions
+
+### Ratings
+
+- `POST /api/ratings/rate` - Rate a meal (1-5 stars, today only)
+- `GET /api/ratings/top?minRatings={min}` - Get top-rated meals
+
+All endpoints return JSON and follow RESTful conventions.
 
 ---
 
