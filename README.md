@@ -1,61 +1,79 @@
-# BistroRater – Internal Bistro Meal Rating System
+# BistroRater – Deployment- & Entwicklungsanleitung
 
-BistroRater is a small internal web application that allows employees to rate daily bistro meals.  
-It is built with **ASP.NET Core 10**, **EF Core 10**, **Blazor Server**, **PostgreSQL**, and **OIDC (Auth0)**.
+Diese Anleitung beschreibt alle Schritte, um die BistroRater‑Webanwendung sowohl **lokal** als auch **in Docker** (inkl. PostgreSQL & Auth0 Login) erfolgreich auszuführen.
 
-The application is fully containerized using **Docker Compose** and runs with:
+Sie umfasst:
 
-- WebApp (ASP.NET Core)
-- PostgreSQL database
-- Adminer (optional DB UI)
-
----
-
-## ⚙️ Technology Stack
-
-- **.NET 10 / ASP.NET Core**
-- **Blazor Server**
-- **Entity Framework Core 10**
-- **PostgreSQL 16**
-- **Docker / Docker Compose**
-- **Auth0 (OpenID Connect Login)**
-- **Adminer** for database inspection
+- Lokales Setup
+- Umgang mit Secrets
+- Verwendung einer `.env` Datei
+- Docker & Docker‑Compose Konfiguration
+- Start & Troubleshooting
 
 ---
 
-## 🚀 Quick Start
+# 1. Voraussetzungen
 
-1. Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-2. Insert your Auth0 credentials into `.env`.
-
-3. Start the full stack:
-
-```bash
-docker compose up --build
-```
-
-4. Open the application:
-
-```
-http://localhost:7015
-```
-
-5. (Optional) Open the Adminer UI:
-
-```
-http://localhost:8080
-```
+- .NET 9 oder .NET 10 SDK
+- Docker Desktop (aktuellste Version)
+- PostgreSQL (lokal optional, über Docker empfohlen)
+- Auth0 (oder anderer OIDC‑Provider)
 
 ---
 
-## 🐳 Docker Setup
+# 2. Secrets konfigurieren
 
-### `docker-compose.yml`
+Die Anwendung benötigt OAuth‑/OIDC‑Daten (Authority, ClientId, ClientSecret).
+
+Dafür gibt es **zwei mögliche Wege**:
+
+---
+
+## OPTION A – Lokale Entwicklung mit `dotnet user-secrets`
+
+Im Projektordner `BistroRater`:
+
+```
+dotnet user-secrets init
+dotnet user-secrets set "Auth:Authority" "https://DEIN_AUTH0_DOMAIN/"
+dotnet user-secrets set "Auth:ClientId" "DEINE_CLIENT_ID"
+dotnet user-secrets set "Auth:ClientSecret" "DEIN_CLIENT_SECRET"
+```
+
+Diese Daten gelten nur lokal.
+
+---
+
+## OPTION B – Mit `.env` Datei (für Docker empfohlen)
+
+Lege eine Datei `.env` neben deine `docker-compose.yml`:
+
+```
+# ===== Auth0 Daten =====
+AUTH_AUTHORITY=https://dev-xxxxxx.us.auth0.com/
+AUTH_CLIENTID=DEINE_CLIENT_ID
+AUTH_CLIENTSECRET=DEIN_CLIENT_SECRET
+
+# ===== PostgreSQL =====
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=bistrodb
+```
+
+Docker Compose lädt diese Datei **automatisch**, ohne dass du etwas referenzieren musst.
+
+---
+
+# 3. Docker Compose Setup
+
+Deine `docker-compose.yml` muss Folgendes enthalten:
+
+- Postgres‑Container mit Healthcheck  
+- WebApp‑Container mit Environment‑Variablen  
+- Persistente DataProtection‑Keys (Pflicht für Auth0 & Cookies)  
+- Interne BaseUrl der API (`http://webapp:8080`)
+
+Beispielkonfiguration:
 
 ```yaml
 services:
@@ -63,159 +81,100 @@ services:
     image: postgres:16
     container_name: bistro-postgres
     restart: always
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
 
   webapp:
     build: .
     container_name: bistro-webapp
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
+      RUNNING_IN_DOCKER: "true"
+
+      Api__BaseUrl: "http://webapp:8080"
+
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
 
       Auth__Authority: "${AUTH_AUTHORITY}"
       Auth__ClientId: "${AUTH_CLIENTID}"
       Auth__ClientSecret: "${AUTH_CLIENTSECRET}"
+
     ports:
       - "7015:8080"
 
-  adminer:
-    image: adminer
-    container_name: bistro-adminer
-    restart: always
-    ports:
-      - "8080:8080"
+    volumes:
+      - dataprotection-keys:/root/.aspnet/DataProtection-Keys
 
 volumes:
   postgres-data:
+  dataprotection-keys:
 ```
 
 ---
 
-## 🔐 Environment Variables
+# 4. Docker Build & Start
 
-### `.env.example`
-
-```env
-# ==== Auth0 Configuration ====
-AUTH_AUTHORITY=https://YOUR_DOMAIN.eu.auth0.com/
-AUTH_CLIENTID=YOUR_CLIENT_ID
-AUTH_CLIENTSECRET=YOUR_CLIENT_SECRET
-
-# ==== PostgreSQL Configuration ====
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=bistrodb
+Benutze die **docker-starter.bat** Datei oder führe folgende Befehle im Terminal aus:
+```
+docker compose build
+docker compose up
 ```
 
-Add `.env` to `.gitignore`:
+Danach im Browser öffnen:
 
 ```
-.env
+http://localhost:7015
 ```
+
+Funktionen, die nun laufen sollten:
+
+- Login über Auth0
+- Tages- & Wochenmenüs laden
+- Bewertungen abgeben
+- Autocomplete-Vorschläge  
+- Top Meals anzeigen
 
 ---
 
-## 🔑 Auth0 Setup
+# 5. Lokale Entwicklung ohne Docker (optional)
 
-### Allowed Callback URLs
-
-```
-https://localhost:7015/signin-oidc
-```
-
-### Allowed Logout URLs
+Wenn du die App **lokal** starten willst, aber Postgres weiter über Docker laufen lässt:
 
 ```
-https://localhost:7015/
+docker compose up postgres
 ```
 
-### Allowed Web Origins
+In `appsettings.Development.json`:
 
 ```
-https://localhost:7015
-```
-
-### API Identifier (if used)
-
-```
-api://bistrorater
-```
-
----
-
-## 🧱 Database Migrations
-
-Migrations are automatically applied at startup:
-
-```csharp
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<BistroContext>();
-    db.Database.Migrate();
+"ConnectionStrings": {
+  "Default": "Host=localhost;Port=5432;Database=bistrodb;Username=postgres;Password=postgres"
 }
 ```
 
----
-
-## 👨‍💻 Developer Mode (No Login Required)
-
-```json
-{
-  "Auth": {
-    "RequireAuth": false
-  }
-}
-```
-
-This injects a fake user during development.
-
----
-
-## 🧭 Architecture Overview
+Dann:
 
 ```
-+-------------------+       +------------------+
-|   WebApp (8080)   | --->  | PostgreSQL (5432)|
-| ASP.NET + Blazor  |       | Data Persistence |
-+-------------------+       +------------------+
-           |
-           | optional
-           v
-+-------------------+
-|  Adminer (8080)   |
-| DB Visualization  |
-+-------------------+
+dotnet run
 ```
 
----
 
-## ❗ Troubleshooting
 
-### OAuth not configured
-Check environment variables inside the container:
+# 6. Autor
 
-```bash
-docker exec -it bistro-webapp printenv | grep Auth
-```
-
-### PostgreSQL connection issues
-
-```bash
-docker logs bistro-postgres
-```
-
----
-
-## 📄 License
-
-Internal assignment – not intended for public distribution.
+Christian Otting – BistroRater Demo Projekt
