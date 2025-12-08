@@ -3,30 +3,50 @@ services:
     image: postgres:16
     container_name: bistro-postgres
     restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: bistrodb
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bistrodb
 
   webapp:
     build: .
     container_name: bistro-webapp
     restart: always
     depends_on:
-      - postgres
+        postgres:
+                condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
-      # Wichtig: der Host ist NICHT localhost, sondern der SERVICE-NAME "postgres"
-      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=bistrodb;Username=postgres;Password=postgres"
+      RUNNING_IN_DOCKER: "true"
+
+      
+      # fix wrong internal port in docker
+      Api__BaseUrl: "http://webapp:8080"
+
+      # Correct DB connection string for Docker
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+
+      # Auth0 settings
       Auth__Authority: "${AUTH_AUTHORITY}"
       Auth__ClientId: "${AUTH_CLIENTID}"
       Auth__ClientSecret: "${AUTH_CLIENTSECRET}"
+
     ports:
-      - "7015:8080"  # 7015 lokal -> 8080 im Container (siehe Dockerfile ENV)
+      - "7015:8080"
+
+    volumes:
+      # Persist ASP.NET DataProtection Keys (fixes antiforgery + auth cookie issues)
+      - dataprotection-keys:/root/.aspnet/DataProtection-Keys
 
 volumes:
   postgres-data:
+  dataprotection-keys:

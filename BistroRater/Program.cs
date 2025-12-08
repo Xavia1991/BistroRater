@@ -4,6 +4,7 @@ using Database;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -18,6 +19,15 @@ builder.Services.AddRazorPages();
 AddAuthentication(builder);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAntiforgery();
+
+var isDocker = builder.Configuration["RUNNING_IN_DOCKER"] == "true";
+
+if (isDocker)
+{
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo("/root/.aspnet/DataProtection-Keys"))
+        .SetApplicationName("BistroRater");
+}
 
 builder.Services.AddHttpClient("ApiClient", (sp, client) =>
 {
@@ -39,13 +49,7 @@ builder.Services.AddDbContext<BistroContext>(options =>
 var app = builder.Build();
 
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 

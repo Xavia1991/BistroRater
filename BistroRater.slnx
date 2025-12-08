@@ -4,6 +4,7 @@
     <Platform Name="x64" />
   </Configurations>
   <Folder Name="/Solution Items/">
+    <File Path=".env" />
     <File Path="README.md" />
   </Folder>
   <Project Path="BistroRater/BistroRater.csproj" />

@@ -10,6 +10,8 @@ RUN dotnet publish "BistroRater/BistroRater.csproj" -c Release -o /app/publish /
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
+
 # Install missing dependencies for PostgreSQL (Npgsql)
 RUN apt-get update && apt-get install -y \
     libkrb5-3 \
